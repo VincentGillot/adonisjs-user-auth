@@ -1,19 +1,10 @@
 import type { HttpContext } from "@adonisjs/core/http";
-import User from "../models/user.js";
+import User, { UserRole } from "../models/user.js";
 
 export default class UsersController {
   async all(ctx: HttpContext) {
     // Return all users
-    return [
-      {
-        id: 1,
-        username: "virk",
-      },
-      {
-        id: 2,
-        username: "romain",
-      },
-    ];
+    return await User.all();
   }
 
   async store({ request }: HttpContext) {
@@ -26,6 +17,7 @@ export default class UsersController {
     const user = await User.create({
       email: body.email,
       password: body.password,
+      role: UserRole.USER,
     });
 
     return user;
