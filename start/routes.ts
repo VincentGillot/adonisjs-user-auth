@@ -9,6 +9,8 @@
 
 import router from "@adonisjs/core/services/router";
 import AccountController from "../app/controllers/account_controller.js";
+import { middleware } from "./kernel.js";
+import { UserRole } from "../app/models/user.js";
 const UsersController = () => import("../app/controllers/users_controller.js");
 
 router.on("/").redirect("/v1");
@@ -34,13 +36,26 @@ router
         // DELETE
         router.delete("/:id", [UsersController, "destroy"]);
       })
-      .prefix("/users");
+      .prefix("/users")
+      .use(
+        middleware.cookieAuth({
+          roles: [UserRole.ADMIN],
+        })
+      );
 
     // ACCOUNT
     router
       .group(() => {
-        // GET ALL
+        router
+          .group(() => {
+            // AUTH ACCOUNT
+            router.get("/", [AccountController, "getAccount"]);
+            router.get("/auth", [AccountController, "auth"]);
+          })
+          .use(middleware.cookieAuth());
+        // UNAUTH ACCOUNT
         router.post("/login", [AccountController, "login"]);
+        router.delete("/logout", [AccountController, "logout"]);
       })
       .prefix("/account");
   })

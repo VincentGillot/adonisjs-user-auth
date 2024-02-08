@@ -7,11 +7,16 @@ export default class UsersController {
     return await User.all();
   }
 
-  async store({ request }: HttpContext) {
+  async store({ request, response }: HttpContext) {
     // Create User in database
     const body = request.body();
     if (!body.email || !body.password) {
-      throw new Error("Missing params");
+      return response.badRequest("Missing parameters");
+    }
+
+    const existingUser = await User.findBy("email", body.email);
+    if (existingUser) {
+      return response.conflict("User already exists");
     }
 
     const user = await User.create({
@@ -23,12 +28,13 @@ export default class UsersController {
     return user;
   }
 
-  async show({ params }: HttpContext) {
+  async show({ params, response }: HttpContext) {
     // Return user by ID
-    return {
-      id: params.id,
-      username: "virk",
-    };
+    const user = await User.find(params.id);
+    if (!user) {
+      return response.notFound();
+    }
+    return user;
   }
 
   async update({ params, request: { body } }: HttpContext) {
@@ -39,14 +45,12 @@ export default class UsersController {
     };
   }
 
-  async destroy({ params }: HttpContext) {
-    if (!params.id) {
-      throw new Error("Missing ID");
-    }
+  async destroy({ params, response }: HttpContext) {
     const user = await User.find(params.id);
     if (!user) {
-      throw new Error("Not Found");
+      return response.notFound();
     }
+
     await user.delete();
 
     return user.id;
