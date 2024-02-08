@@ -1,6 +1,11 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User, { UserRole } from "../models/user.js";
-import { createUserValidator, showUserValidator } from "../validators/user.js";
+import {
+  createUserValidator,
+  deleteUserValidator,
+  putUserProfileValidator,
+  showUserValidator,
+} from "../validators/user.js";
 
 export default class UsersController {
   async all(ctx: HttpContext) {
@@ -37,16 +42,19 @@ export default class UsersController {
     return user;
   }
 
-  async putProfile({ params, request: { body } }: HttpContext) {
-    // Update user information by ID
+  async putProfile({ request }: HttpContext) {
+    const payload = await request.validateUsing(putUserProfileValidator);
+
     return {
-      id: params.id,
+      id: payload.params.id,
       username: "virk",
     };
   }
 
-  async destroy({ params, response }: HttpContext) {
-    const user = await User.find(params.id);
+  async destroy({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(deleteUserValidator);
+
+    const user = await User.find(payload.params.id);
     if (!user) {
       return response.notFound();
     }
