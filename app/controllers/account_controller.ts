@@ -2,6 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 import User from "../models/user.js";
 import JWTService from "../services/jwt_service.js";
 import hash from "@adonisjs/core/services/hash";
+import { putProfileValidator } from "../validators/account.js";
 
 export default class AccountController {
   async getAccount({ user }: HttpContext) {
@@ -65,5 +66,11 @@ export default class AccountController {
     }
     user.password = newPassword;
     await user.save();
+  }
+
+  async putProfile({ request, response, user }: HttpContext) {
+    const payload = await request.validateUsing(putProfileValidator);
+
+    console.log(payload);
   }
 }

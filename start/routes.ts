@@ -32,7 +32,7 @@ router
         // CREATE
         router.post("/", [UsersController, "store"]);
         // EDIT
-        router.patch("/:id", [UsersController, "update"]);
+        router.put("/:id", [UsersController, "putProfile"]);
         // DELETE
         router.delete("/:id", [UsersController, "destroy"]);
       })
@@ -50,6 +50,7 @@ router
           .group(() => {
             // AUTH ACCOUNT
             router.get("/", [AccountController, "getAccount"]);
+            router.put("/", [AccountController, "putProfile"]);
             router.get("/auth", [AccountController, "auth"]);
             router.post("/change-password", [
               AccountController,

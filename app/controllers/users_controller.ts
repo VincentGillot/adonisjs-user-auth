@@ -1,5 +1,6 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User, { UserRole } from "../models/user.js";
+import { createUserValidator, showUserValidator } from "../validators/user.js";
 
 export default class UsersController {
   async all(ctx: HttpContext) {
@@ -8,36 +9,35 @@ export default class UsersController {
   }
 
   async store({ request, response }: HttpContext) {
-    // Create User in database
-    const body = request.body();
-    if (!body.email || !body.password) {
-      return response.badRequest("Missing parameters");
-    }
+    const payload = await request.validateUsing(createUserValidator);
 
-    const existingUser = await User.findBy("email", body.email);
+    const existingUser = await User.findBy("email", payload.email);
     if (existingUser) {
       return response.conflict("User already exists");
     }
 
     const user = await User.create({
-      email: body.email,
-      password: body.password,
+      email: payload.email,
+      password: payload.password,
       role: UserRole.USER,
     });
 
     return user;
   }
 
-  async show({ params, response }: HttpContext) {
-    // Return user by ID
-    const user = await User.query().preload("profile").where("id", params.id);
+  async show({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(showUserValidator);
+
+    const user = await User.query()
+      .preload("profile")
+      .where("id", payload.params.id);
     if (!user) {
       return response.notFound();
     }
     return user;
   }
 
-  async update({ params, request: { body } }: HttpContext) {
+  async putProfile({ params, request: { body } }: HttpContext) {
     // Update user information by ID
     return {
       id: params.id,
