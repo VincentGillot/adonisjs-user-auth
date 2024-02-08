@@ -15,6 +15,9 @@ export default class extends BaseSchema {
           useNative: true,
         })
         .notNullable();
+      table.boolean("active").notNullable().defaultTo(true);
+      table.boolean("validated").notNullable().defaultTo(false);
+      table.string("validation_token");
       table.timestamp("created_at");
       table.timestamp("updated_at");
     });

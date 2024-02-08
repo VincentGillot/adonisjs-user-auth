@@ -56,6 +56,8 @@ router
         // UNAUTH ACCOUNT
         router.post("/login", [AccountController, "login"]);
         router.delete("/logout", [AccountController, "logout"]);
+        router.post("/forgot-password", [AccountController, "forgotPassword"]);
+        router.post("/reset-password", [AccountController, "resetPassword"]);
       })
       .prefix("/account");
   })

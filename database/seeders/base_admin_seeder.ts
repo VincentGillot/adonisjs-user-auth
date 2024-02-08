@@ -14,6 +14,8 @@ export default class extends BaseSeeder {
         email: email,
         role: UserRole.ADMIN,
         password: password,
+        active: true,
+        validated: true,
       });
     }
   }

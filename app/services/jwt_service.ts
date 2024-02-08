@@ -15,6 +15,12 @@ export default class JWTService {
     });
   }
 
+  static encodeValidationToken(body: AuthCookieBody) {
+    return jwt.sign(body, env.get("APP_KEY"), {
+      expiresIn: "2h",
+    });
+  }
+
   static decodeAuthCookie(token: string): AuthCookieBody | null {
     try {
       return jwt.verify(token, env.get("APP_KEY")) as AuthCookieBody;

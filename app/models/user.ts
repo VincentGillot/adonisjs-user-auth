@@ -22,6 +22,15 @@ export default class User extends BaseModel {
   @column()
   declare role: UserRole;
 
+  @column()
+  declare active: boolean;
+
+  @column()
+  declare validated: boolean;
+
+  @column({ serializeAs: null })
+  declare validationToken: string | null;
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;
 
@@ -53,5 +62,14 @@ export default class User extends BaseModel {
       email: this.email,
       role: this.role,
     });
+  }
+
+  async generateValidationToken() {
+    this.validationToken = JWTService.encodeValidationToken({
+      id: this.id,
+      email: this.email,
+      role: this.role,
+    });
+    await this.save();
   }
 }

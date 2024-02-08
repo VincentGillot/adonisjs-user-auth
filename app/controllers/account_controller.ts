@@ -1,5 +1,6 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User from "../models/user.js";
+import JWTService from "../services/jwt_service.js";
 
 export default class AccountController {
   async getAccount({ user }: HttpContext) {
@@ -23,4 +24,32 @@ export default class AccountController {
   }
 
   async auth() {}
+
+  async forgotPassword({ request }: HttpContext) {
+    const body = request.body();
+    const user = await User.findBy("email", body.email);
+    if (user) {
+      user.generateValidationToken();
+      console.log(user.validationToken);
+    }
+  }
+
+  async resetPassword({ request, response }: HttpContext) {
+    const { token, password } = request.body();
+    const decodedToken = JWTService.decodeAuthCookie(token);
+    if (!decodedToken) {
+      return response.forbidden("Invalid Token");
+    }
+
+    const user = await User.query()
+      .where("email", decodedToken.email)
+      .where("id", decodedToken.id)
+      .first();
+    if (!user) {
+      return response.forbidden("Invalid Token");
+    }
+    user.password = password;
+    user.validationToken = null;
+    await user.save();
+  }
 }
