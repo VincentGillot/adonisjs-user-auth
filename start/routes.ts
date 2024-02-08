@@ -32,7 +32,7 @@ router
         // CREATE
         router.post("/", [UsersController, "store"]);
         // EDIT
-        router.post("/:id", [UsersController, "update"]);
+        router.patch("/:id", [UsersController, "update"]);
         // DELETE
         router.delete("/:id", [UsersController, "destroy"]);
       })
