@@ -51,6 +51,10 @@ router
             // AUTH ACCOUNT
             router.get("/", [AccountController, "getAccount"]);
             router.get("/auth", [AccountController, "auth"]);
+            router.post("/change-password", [
+              AccountController,
+              "changePassword",
+            ]);
           })
           .use(middleware.cookieAuth());
         // UNAUTH ACCOUNT

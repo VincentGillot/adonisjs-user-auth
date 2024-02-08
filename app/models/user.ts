@@ -1,7 +1,9 @@
 import { DateTime } from "luxon";
-import { BaseModel, beforeSave, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeSave, column, hasOne } from "@adonisjs/lucid/orm";
 import hash from "@adonisjs/core/services/hash";
 import JWTService from "../services/jwt_service.js";
+import Profile from "./profile.js";
+import type { HasOne } from "@adonisjs/lucid/types/relations";
 
 export enum UserRole {
   ADMIN = "ADMIN",
@@ -30,6 +32,12 @@ export default class User extends BaseModel {
 
   @column({ serializeAs: null })
   declare validationToken: string | null;
+
+  @hasOne(() => Profile, {
+    foreignKey: "userId",
+    localKey: "id",
+  })
+  declare profile: HasOne<typeof Profile>;
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;

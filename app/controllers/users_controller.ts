@@ -4,7 +4,7 @@ import User, { UserRole } from "../models/user.js";
 export default class UsersController {
   async all(ctx: HttpContext) {
     // Return all users
-    return await User.all();
+    return await User.query().preload("profile");
   }
 
   async store({ request, response }: HttpContext) {
@@ -30,7 +30,7 @@ export default class UsersController {
 
   async show({ params, response }: HttpContext) {
     // Return user by ID
-    const user = await User.find(params.id);
+    const user = await User.query().preload("profile").where("id", params.id);
     if (!user) {
       return response.notFound();
     }

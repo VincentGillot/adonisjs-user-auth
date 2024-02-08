@@ -1,9 +1,11 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User from "../models/user.js";
 import JWTService from "../services/jwt_service.js";
+import hash from "@adonisjs/core/services/hash";
 
 export default class AccountController {
   async getAccount({ user }: HttpContext) {
+    await user.load("profile");
     return user;
   }
 
@@ -50,6 +52,18 @@ export default class AccountController {
     }
     user.password = password;
     user.validationToken = null;
+    await user.save();
+  }
+
+  async changePassword({ request, response, user }: HttpContext) {
+    const { oldPassword, newPassword } = request.body();
+    if (!oldPassword || !newPassword) {
+      return response.badRequest("Missing parameters");
+    }
+    if (!(await hash.verify(user.password, oldPassword))) {
+      return response.unauthorized("Wrong Password");
+    }
+    user.password = newPassword;
     await user.save();
   }
 }
