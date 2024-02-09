@@ -8,10 +8,11 @@
 */
 
 import router from "@adonisjs/core/services/router";
-import AccountController from "../app/controllers/account_controller.js";
 import { middleware } from "./kernel.js";
 import { UserRole } from "../app/models/user.js";
 const UsersController = () => import("../app/controllers/users_controller.js");
+const AccountController = () =>
+  import("../app/controllers/account_controller.js");
 
 router.on("/").redirect("/v1");
 
