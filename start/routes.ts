@@ -63,6 +63,8 @@ router
         router.delete("/logout", [AccountController, "logout"]);
         router.post("/forgot-password", [AccountController, "forgotPassword"]);
         router.post("/reset-password", [AccountController, "resetPassword"]);
+        router.post("/register", [AccountController, "register"]);
+        router.post("/validate-account", [AccountController, "validate"]);
       })
       .prefix("/account");
   })

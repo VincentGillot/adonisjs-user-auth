@@ -3,7 +3,7 @@ import vine from "@vinejs/vine";
 export const createUserValidator = vine.compile(
   vine.object({
     email: vine.string().trim().escape().email(),
-    password: vine.string().trim().escape(),
+    password: vine.string(),
   })
 );
 

@@ -33,3 +33,18 @@ export const putProfileValidator = vine.compile(
     lastName: vine.string().trim().escape().optional(),
   })
 );
+
+export const registerUserValidator = vine.compile(
+  vine.object({
+    email: vine.string().trim().escape().email(),
+    password: vine.string(),
+    firstName: vine.string().trim().escape().optional(),
+    lastName: vine.string().trim().escape().optional(),
+  })
+);
+
+export const validateAccountValidator = vine.compile(
+  vine.object({
+    token: vine.string().trim(),
+  })
+);

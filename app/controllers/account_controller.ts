@@ -1,5 +1,5 @@
 import type { HttpContext } from "@adonisjs/core/http";
-import User from "../models/user.js";
+import User, { UserRole } from "../models/user.js";
 import JWTService from "../services/jwt_service.js";
 import hash from "@adonisjs/core/services/hash";
 import {
@@ -7,7 +7,9 @@ import {
   forgotPasswordValidator,
   loginValidator,
   putProfileValidator,
+  registerUserValidator,
   resetPasswordValidator,
+  validateAccountValidator,
 } from "../validators/account.js";
 import Profile from "../models/profile.js";
 
@@ -98,5 +100,50 @@ export default class AccountController {
     }
     await user.load("profile");
     return user;
+  }
+
+  async register({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(registerUserValidator);
+
+    const existingUser = await User.findBy("email", payload.email);
+    if (existingUser) {
+      return response.conflict("User already exists");
+    }
+
+    const user = await User.create({
+      email: payload.email,
+      password: payload.password,
+      role: UserRole.USER,
+      validated: false,
+    });
+
+    await Profile.create({
+      userId: user.id,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+    });
+
+    await user.generateValidationToken();
+    console.log(user.validationToken);
+  }
+
+  async validate({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(validateAccountValidator);
+
+    const decodedToken = JWTService.decodeAuthCookie(payload.token);
+    if (!decodedToken) {
+      return response.forbidden("Invalid Token");
+    }
+
+    const user = await User.query()
+      .where("email", decodedToken.email)
+      .where("id", decodedToken.id)
+      .first();
+    if (!user) {
+      return response.forbidden("Invalid Token");
+    }
+    user.validated = true;
+    user.validationToken = null;
+    await user.save();
   }
 }
