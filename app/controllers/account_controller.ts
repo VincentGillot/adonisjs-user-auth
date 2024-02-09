@@ -12,6 +12,8 @@ import {
   validateAccountValidator,
 } from "../validators/account.js";
 import Profile from "../models/profile.js";
+import mail from "@adonisjs/mail/services/main";
+import env from "../../start/env.js";
 
 export default class AccountController {
   async getAccount({ user }: HttpContext) {
@@ -124,26 +126,63 @@ export default class AccountController {
     });
 
     await user.generateValidationToken();
+    await mail.send(message => {
+      message
+        .to(user.email)
+        .subject("Verify your email address")
+        .html(
+          `
+          <h1> Verify email address </h1>
+          <p>
+            <a href="http://${env.get("HOST")}:${env.get("PORT")}/v1/account/validate-account?token=${user.validationToken}">Click here</a> to verify your email address
+          </p>
+          `
+        )
+        .text(
+          `
+          Verify email address
+          Please visit http://${env.get("HOST")}:${env.get("PORT")}/v1/account/validate-account?token=${user.validationToken}
+          `
+        );
+    });
     console.log(user.validationToken);
   }
 
-  async validate({ request, response }: HttpContext) {
+  async validatePost({ request, response }: HttpContext) {
     const payload = await request.validateUsing(validateAccountValidator);
-
-    const decodedToken = JWTService.decodeAuthCookie(payload.token);
-    if (!decodedToken) {
+    if (payload.token && (await this.validate(payload.token))) {
+      return;
+    } else {
       return response.forbidden("Invalid Token");
+    }
+  }
+
+  async validateGet({ request, response }: HttpContext) {
+    const { token } = request.qs();
+    if (token && (await this.validate(token))) {
+      return;
+    } else {
+      return response.forbidden("Invalid Token");
+    }
+  }
+
+  private async validate(token: string) {
+    const decodedToken = JWTService.decodeAuthCookie(token);
+    if (!decodedToken) {
+      return false;
     }
 
     const user = await User.query()
       .where("email", decodedToken.email)
       .where("id", decodedToken.id)
+      .where("validationToken", token)
       .first();
     if (!user) {
-      return response.forbidden("Invalid Token");
+      return false;
     }
     user.validated = true;
     user.validationToken = null;
     await user.save();
+    return true;
   }
 }
