@@ -2,7 +2,14 @@ import type { HttpContext } from "@adonisjs/core/http";
 import User from "../models/user.js";
 import JWTService from "../services/jwt_service.js";
 import hash from "@adonisjs/core/services/hash";
-import { putProfileValidator } from "../validators/account.js";
+import {
+  changePasswordValidator,
+  forgotPasswordValidator,
+  loginValidator,
+  putProfileValidator,
+  resetPasswordValidator,
+} from "../validators/account.js";
+import Profile from "../models/profile.js";
 
 export default class AccountController {
   async getAccount({ user }: HttpContext) {
@@ -11,9 +18,13 @@ export default class AccountController {
   }
 
   async login({ request, response }: HttpContext) {
-    const body = request.body();
+    const payload = await request.validateUsing(loginValidator);
+
     try {
-      const user = await User.verifyCredentials(body.email, body.password);
+      const user = await User.verifyCredentials(
+        payload.email,
+        payload.password
+      );
       const token = user.generateAuthCookieToken();
       return response.cookie("auth_token", token);
     } catch (error) {
@@ -29,8 +40,9 @@ export default class AccountController {
   async auth() {}
 
   async forgotPassword({ request }: HttpContext) {
-    const body = request.body();
-    const user = await User.findBy("email", body.email);
+    const payload = await request.validateUsing(forgotPasswordValidator);
+
+    const user = await User.findBy("email", payload.email);
     if (user) {
       user.generateValidationToken();
       console.log(user.validationToken);
@@ -38,8 +50,9 @@ export default class AccountController {
   }
 
   async resetPassword({ request, response }: HttpContext) {
-    const { token, password } = request.body();
-    const decodedToken = JWTService.decodeAuthCookie(token);
+    const payload = await request.validateUsing(resetPasswordValidator);
+
+    const decodedToken = JWTService.decodeAuthCookie(payload.token);
     if (!decodedToken) {
       return response.forbidden("Invalid Token");
     }
@@ -51,26 +64,39 @@ export default class AccountController {
     if (!user) {
       return response.forbidden("Invalid Token");
     }
-    user.password = password;
+    user.password = payload.password;
     user.validationToken = null;
     await user.save();
   }
 
   async changePassword({ request, response, user }: HttpContext) {
-    const { oldPassword, newPassword } = request.body();
-    if (!oldPassword || !newPassword) {
-      return response.badRequest("Missing parameters");
-    }
-    if (!(await hash.verify(user.password, oldPassword))) {
+    const payload = await request.validateUsing(changePasswordValidator);
+
+    if (!(await hash.verify(user.password, payload.oldPassword))) {
       return response.unauthorized("Wrong Password");
     }
-    user.password = newPassword;
+    user.password = payload.newPassword;
     await user.save();
   }
 
-  async putProfile({ request, response, user }: HttpContext) {
+  async putProfile({ request, user }: HttpContext) {
     const payload = await request.validateUsing(putProfileValidator);
 
-    console.log(payload);
+    const profile = await user.related("profile").query().first();
+    if (!profile) {
+      await Profile.create({
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        userId: user.id,
+      });
+    } else {
+      profile.merge({
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+      });
+      await profile.save();
+    }
+    await user.load("profile");
+    return user;
   }
 }

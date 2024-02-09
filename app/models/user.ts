@@ -80,4 +80,10 @@ export default class User extends BaseModel {
     });
     await this.save();
   }
+
+  // static scopeByActive(query, activeState) {
+  //   activeState = `%${decodeURIComponent(activeState)}%`;
+
+  //   return query.where("")
+  // }
 }

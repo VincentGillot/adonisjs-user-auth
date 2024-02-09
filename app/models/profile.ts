@@ -4,10 +4,10 @@ import { DateTime } from "luxon";
 export default class Profile extends BaseModel {
   static table = "profiles";
 
-  @column({ isPrimary: true })
+  @column({ isPrimary: true, serializeAs: null })
   declare id: number;
 
-  @column()
+  @column({ serializeAs: null })
   declare userId: number;
 
   @column()
