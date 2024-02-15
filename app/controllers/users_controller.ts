@@ -10,10 +10,9 @@ import Profile from "../models/profile.js";
 
 export default class UsersController {
   /**
-   * @index
    * @operationId all
    * @description Returns array of users
-   * @responseBody 200 - <User[]>.with(relations)
+   * @responseBody 200 - <model[]>.with(relations)
    * @paramUse(sortable, filterable)
    * @responseHeader 200 - @use(paginated)
    * @responseHeader 200 - X-pages - A description of the header - @example(test)

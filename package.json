@@ -58,7 +58,7 @@
     "@adonisjs/session": "^7.1.1",
     "@types/jsonwebtoken": "^9.0.5",
     "@vinejs/vine": "^1.7.1",
-    "adonis-autoswagger": "^2.2.1",
+    "adonis-autoswagger": "^2.5.1",
     "better-sqlite3": "^9.4.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.4.4",
