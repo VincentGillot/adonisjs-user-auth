@@ -10,11 +10,21 @@
 import router from "@adonisjs/core/services/router";
 import { middleware } from "./kernel.js";
 import { UserRole } from "../app/models/user.js";
+import AutoSwagger from "adonis-autoswagger";
+import swagger from "../config/swagger.js";
 const UsersController = () => import("../app/controllers/users_controller.js");
 const AccountController = () =>
   import("../app/controllers/account_controller.js");
 
 router.on("/").redirect("/v1");
+
+// SWAGGER
+router.get("/swagger", () => {
+  return AutoSwagger.default.docs(router.toJSON(), swagger);
+});
+router.get("/docs", () => {
+  return AutoSwagger.default.ui("/swagger", swagger);
+});
 
 router
   .group(() => {
